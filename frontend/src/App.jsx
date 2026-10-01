@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import "./App.css";
 
 const API = "http://127.0.0.1:8000";
@@ -13,7 +15,10 @@ function useToast() {
   const showToast = useCallback((msg, type = "info") => {
     clearTimeout(timerRef.current);
     setToast({ msg, type, show: true });
-    timerRef.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 3500);
+    timerRef.current = setTimeout(
+      () => setToast((t) => ({ ...t, show: false })),
+      3500,
+    );
   }, []);
 
   return { toast, showToast };
@@ -78,7 +83,8 @@ export default function App() {
 
   /* ── Speech Recognition (STT & Voice Commands) ── */
   useEffect(() => {
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRec =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) return;
 
     const recog = new SpeechRec();
@@ -88,7 +94,7 @@ export default function App() {
 
     recog.onresult = (e) => {
       const transcript = Array.from(e.results)
-        .map(r => r[0].transcript)
+        .map((r) => r[0].transcript)
         .join("");
       setInputQuestion(transcript);
     };
@@ -108,7 +114,10 @@ export default function App() {
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      showToast("Speech recognition is not supported in this browser. Please use Chrome/Edge.", "error");
+      showToast(
+        "Speech recognition is not supported in this browser. Please use Chrome/Edge.",
+        "error",
+      );
       return;
     }
     if (listening) {
@@ -136,7 +145,10 @@ export default function App() {
     if (!file) return;
     const ext = file.name.split(".").pop().toLowerCase();
     if (!["pdf", "png", "jpg", "jpeg"].includes(ext)) {
-      showToast("Please upload a PDF or document image (.png, .jpg, .jpeg).", "error");
+      showToast(
+        "Please upload a PDF or document image (.png, .jpg, .jpeg).",
+        "error",
+      );
       return;
     }
     setDocFile(file);
@@ -173,7 +185,10 @@ export default function App() {
       const data = await res.json();
       setDocInfo(data);
       setActiveTab("summary");
-      showToast(`✅ Successfully indexed ${data.total_clauses} clauses!`, "success");
+      showToast(
+        `✅ Successfully indexed ${data.total_clauses} clauses!`,
+        "success",
+      );
 
       // Initial greeting in chat
       if (data.summary) {
@@ -212,14 +227,22 @@ export default function App() {
 
     // Voice Command Handlers
     const lowerQ = q.toLowerCase();
-    if (lowerQ.includes("summarize") || lowerQ.includes("what is this document about")) {
+    if (
+      lowerQ.includes("summarize") ||
+      lowerQ.includes("what is this document about")
+    ) {
       setActiveTab("summary");
       if (docInfo.summary?.executive_summary) {
         const sumMsg = `This document is a ${docInfo.summary.document_type}. ${docInfo.summary.executive_summary}`;
-        setChatHistory(prev => [
+        setChatHistory((prev) => [
           ...prev,
           { sender: "user", text: q },
-          { sender: "assistant", text: sumMsg, is_grounded: true, evidence: [] }
+          {
+            sender: "assistant",
+            text: sumMsg,
+            is_grounded: true,
+            evidence: [],
+          },
         ]);
         if (autoSpeak) speakText(sumMsg);
       }
@@ -235,7 +258,7 @@ export default function App() {
     }
 
     // Append user message
-    setChatHistory(prev => [...prev, { sender: "user", text: q }]);
+    setChatHistory((prev) => [...prev, { sender: "user", text: q }]);
     setInputQuestion("");
     setAsking(true);
     stopSpeaking();
@@ -253,7 +276,7 @@ export default function App() {
       }
 
       const data = await res.json();
-      setChatHistory(prev => [
+      setChatHistory((prev) => [
         ...prev,
         {
           sender: "assistant",
@@ -268,7 +291,7 @@ export default function App() {
       }
     } catch (e) {
       showToast(`❌ ${e.message}`, "error");
-      setChatHistory(prev => [
+      setChatHistory((prev) => [
         ...prev,
         {
           sender: "assistant",
@@ -290,17 +313,23 @@ export default function App() {
   };
 
   /* ── Filter clauses ── */
-  const filteredClauses = docInfo?.clauses?.filter(c => {
-    const matchesSearch = !clauseSearch ||
-      c.text.toLowerCase().includes(clauseSearch.toLowerCase()) ||
-      c.clause.toLowerCase().includes(clauseSearch.toLowerCase()) ||
-      c.section.toLowerCase().includes(clauseSearch.toLowerCase());
+  const filteredClauses =
+    docInfo?.clauses?.filter((c) => {
+      const matchesSearch =
+        !clauseSearch ||
+        c.text.toLowerCase().includes(clauseSearch.toLowerCase()) ||
+        c.clause.toLowerCase().includes(clauseSearch.toLowerCase()) ||
+        c.section.toLowerCase().includes(clauseSearch.toLowerCase());
 
-    const matchesSection = clauseFilterSection === "ALL" || c.section === clauseFilterSection;
-    return matchesSearch && matchesSection;
-  }) || [];
+      const matchesSection =
+        clauseFilterSection === "ALL" || c.section === clauseFilterSection;
+      return matchesSearch && matchesSection;
+    }) || [];
 
-  const uniqueSections = ["ALL", ...Array.from(new Set(docInfo?.clauses?.map(c => c.section) || []))];
+  const uniqueSections = [
+    "ALL",
+    ...Array.from(new Set(docInfo?.clauses?.map((c) => c.section) || [])),
+  ];
 
   return (
     <div className="app-wrapper">
@@ -310,7 +339,13 @@ export default function App() {
           <div className="brand-icon">⚖️</div>
           <div>
             <span className="brand-name">VoxLegal AI</span>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.04em" }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--text-muted)",
+                letterSpacing: "0.04em",
+              }}
+            >
               Evidence-Grounded Legal Document Intelligence &amp; Voice QA
             </div>
           </div>
@@ -322,7 +357,9 @@ export default function App() {
             onClick={() => setAutoSpeak(!autoSpeak)}
             title="Automatically read answers aloud"
           >
-            <span>{autoSpeak ? "🔊 Voice Auto-Play ON" : "🔇 Voice Auto-Play OFF"}</span>
+            <span>
+              {autoSpeak ? "🔊 Voice Auto-Play ON" : "🔇 Voice Auto-Play OFF"}
+            </span>
           </div>
 
           {speaking && (
@@ -337,11 +374,13 @@ export default function App() {
       <div className="hero-compact">
         <div className="hero-text">
           <h1>
-            Legal Document Analysis <span className="grad">with Voice &amp; RAG</span>
+            Legal Document Analysis{" "}
+            <span className="grad">with Voice &amp; RAG</span>
           </h1>
           <p>
-            Upload any contract, NDA, or scanned legal PDF. Inspect full clause breakdowns,
-            executive condition summaries, and ask questions with voice.
+            Upload any contract, NDA, or scanned legal PDF. Inspect full clause
+            breakdowns, executive condition summaries, and ask questions with
+            voice.
           </p>
         </div>
         <div className="disclaimer-pill">
@@ -361,10 +400,16 @@ export default function App() {
                 <span className="card-title">Document Ingestion</span>
               </div>
             </div>
-            <div className="card-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              className="card-body"
+              style={{ display: "flex", flexDirection: "column", gap: 14 }}
+            >
               <div
                 className={`upload-zone ${dragover ? "dragover" : ""}`}
-                onDragOver={(e) => { e.preventDefault(); setDragover(true); }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragover(true);
+                }}
                 onDragLeave={() => setDragover(false)}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -382,8 +427,12 @@ export default function App() {
                 <p className="upload-label">
                   {docFile ? "Change file" : "Drop legal document or click"}
                 </p>
-                <p className="upload-hint">PDF (digital &amp; scanned) · PNG · JPG</p>
-                {docFile && <div className="upload-filename">📄 {docFile.name}</div>}
+                <p className="upload-hint">
+                  PDF (digital &amp; scanned) · PNG · JPG
+                </p>
+                {docFile && (
+                  <div className="upload-filename">📄 {docFile.name}</div>
+                )}
               </div>
 
               <button
@@ -397,7 +446,11 @@ export default function App() {
                     <span>{processingStep || "Processing..."}</span>
                   </>
                 ) : (
-                  <span>{docInfo ? "♻️ Re-Index Document" : "🚀 Process & Index Document"}</span>
+                  <span>
+                    {docInfo
+                      ? "♻️ Re-Index Document"
+                      : "🚀 Process & Index Document"}
+                  </span>
                 )}
               </button>
             </div>
@@ -428,8 +481,12 @@ export default function App() {
                   </div>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                  📄 <strong>{docInfo.filename}</strong><br />
-                  🏷️ Type: <span style={{ color: "var(--accent-2)" }}>{docInfo.summary?.document_type || "Legal Document"}</span>
+                  📄 <strong>{docInfo.filename}</strong>
+                  <br />
+                  🏷️ Type:{" "}
+                  <span style={{ color: "var(--accent-2)" }}>
+                    {docInfo.summary?.document_type || "Legal Document"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -451,7 +508,9 @@ export default function App() {
               onClick={() => setActiveTab("chat")}
             >
               <span>🎙️ Voice &amp; Chat Assistant</span>
-              {chatHistory.length > 0 && <span className="tab-badge">{chatHistory.length}</span>}
+              {chatHistory.length > 0 && (
+                <span className="tab-badge">{chatHistory.length}</span>
+              )}
             </button>
             <button
               className={`tab-btn ${activeTab === "clauses" ? "active" : ""}`}
@@ -467,7 +526,9 @@ export default function App() {
               <div className="card-header">
                 <div className="card-title-group">
                   <div className="card-icon">📑</div>
-                  <span className="card-title">Document Intelligence Overview</span>
+                  <span className="card-title">
+                    Document Intelligence Overview
+                  </span>
                 </div>
                 {docInfo?.summary?.document_type && (
                   <span className="grounded-badge yes">
@@ -481,8 +542,17 @@ export default function App() {
                     {/* PURPOSE BANNER */}
                     <div className="doc-type-banner">
                       <div>
-                        <div className="doc-type-title">📌 What is this document about?</div>
-                        <div style={{ fontSize: 14, color: "var(--text-primary)", marginTop: 6, lineHeight: 1.65 }}>
+                        <div className="doc-type-title">
+                          📌 What is this document about?
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            color: "var(--text-primary)",
+                            marginTop: 6,
+                            lineHeight: 1.65,
+                          }}
+                        >
                           {docInfo.summary.executive_summary}
                         </div>
                       </div>
@@ -494,7 +564,9 @@ export default function App() {
                         <div className="block-title">👥 Parties Involved</div>
                         <ul className="bullet-list">
                           {docInfo.summary.parties_involved.map((party, i) => (
-                            <li key={i} className="bullet-item"><strong>{party}</strong></li>
+                            <li key={i} className="bullet-item">
+                              <strong>{party}</strong>
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -503,10 +575,14 @@ export default function App() {
                     {/* KEY CONDITIONS */}
                     {docInfo.summary.key_conditions?.length > 0 && (
                       <div className="summary-card-block">
-                        <div className="block-title">⚖️ Key Conditions &amp; Provisions</div>
+                        <div className="block-title">
+                          ⚖️ Key Conditions &amp; Provisions
+                        </div>
                         <ul className="bullet-list">
                           {docInfo.summary.key_conditions.map((cond, i) => (
-                            <li key={i} className="bullet-item">{cond}</li>
+                            <li key={i} className="bullet-item">
+                              {cond}
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -515,8 +591,18 @@ export default function App() {
                     {/* TERMINATION & PENALTIES */}
                     {docInfo.summary.termination_and_penalties && (
                       <div className="highlight-box danger">
-                        <div style={{ fontWeight: 700, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                          <span>🛑 Termination, Notice Periods &amp; Penalties</span>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            marginBottom: 4,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <span>
+                            🛑 Termination, Notice Periods &amp; Penalties
+                          </span>
                         </div>
                         <div>{docInfo.summary.termination_and_penalties}</div>
                       </div>
@@ -535,19 +621,34 @@ export default function App() {
                     {/* IMPORTANT TAKEAWAYS */}
                     {docInfo.summary.important_takeaways?.length > 0 && (
                       <div className="summary-card-block">
-                        <div className="block-title">💡 Important Things to Note</div>
+                        <div className="block-title">
+                          💡 Important Things to Note
+                        </div>
                         <ul className="bullet-list">
-                          {docInfo.summary.important_takeaways.map((point, i) => (
-                            <li key={i} className="bullet-item">{point}</li>
-                          ))}
+                          {docInfo.summary.important_takeaways.map(
+                            (point, i) => (
+                              <li key={i} className="bullet-item">
+                                {point}
+                              </li>
+                            ),
+                          )}
                         </ul>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div style={{ textAlign: "center", padding: "48px 16px", color: "var(--text-muted)" }}>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "48px 16px",
+                      color: "var(--text-muted)",
+                    }}
+                  >
                     <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
-                    <p>Upload and process a document on the left to view the automated Executive Summary &amp; Key Conditions.</p>
+                    <p>
+                      Upload and process a document on the left to view the
+                      automated Executive Summary &amp; Key Conditions.
+                    </p>
                   </div>
                 )}
               </div>
@@ -560,7 +661,9 @@ export default function App() {
               <div className="card-header">
                 <div className="card-title-group">
                   <div className="card-icon">🎙️</div>
-                  <span className="card-title">Evidence-Grounded Voice &amp; Text Assistant</span>
+                  <span className="card-title">
+                    Evidence-Grounded Voice &amp; Text Assistant
+                  </span>
                 </div>
                 {chatHistory.length > 0 && (
                   <button
@@ -577,28 +680,59 @@ export default function App() {
                 {/* CHAT HISTORY */}
                 <div className="chat-history">
                   {chatHistory.length === 0 ? (
-                    <div style={{ textAlign: "center", margin: "auto", color: "var(--text-muted)", maxWidth: 440 }}>
+                    <div
+                      style={{
+                        textAlign: "center",
+                        margin: "auto",
+                        color: "var(--text-muted)",
+                        maxWidth: 440,
+                      }}
+                    >
                       <div style={{ fontSize: 44, marginBottom: 12 }}>💬</div>
-                      <h3 style={{ color: "var(--text-primary)", marginBottom: 6 }}>Ask Anything About Your Document</h3>
+                      <h3
+                        style={{
+                          color: "var(--text-primary)",
+                          marginBottom: 6,
+                        }}
+                      >
+                        Ask Anything About Your Document
+                      </h3>
                       <p style={{ fontSize: 13, lineHeight: 1.6 }}>
-                        Use your microphone or type below. Answers are strictly grounded in your uploaded clauses with page citations.
+                        Use your microphone or type below. Answers are strictly
+                        grounded in your uploaded clauses with page citations.
                       </p>
                     </div>
                   ) : (
                     chatHistory.map((msg, idx) => (
                       <div key={idx} className={`chat-bubble ${msg.sender}`}>
                         <div className="bubble-meta">
-                          <span>{msg.sender === "user" ? "👤 You" : "⚖️ VoxLegal AI"}</span>
+                          <span>
+                            {msg.sender === "user"
+                              ? "👤 You"
+                              : "⚖️ VoxLegal AI"}
+                          </span>
                           {msg.sender === "assistant" && (
-                            <span className={`grounded-badge ${msg.is_grounded ? "yes" : "no"}`}>
-                              {msg.is_grounded ? "✅ Grounded in Document" : "⚠️ Insufficient Context"}
+                            <span
+                              className={`grounded-badge ${msg.is_grounded ? "yes" : "no"}`}
+                            >
+                              {msg.is_grounded
+                                ? "✅ Grounded in Document"
+                                : "⚠️ Insufficient Context"}
                             </span>
                           )}
                         </div>
 
-                        <div style={{ whiteSpace: "pre-wrap", fontSize: 14 }}>
-                          {msg.text}
-                        </div>
+                        {msg.sender === "assistant" ? (
+                          <div className="assistant-answer">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.text}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <div style={{ whiteSpace: "pre-wrap", fontSize: 14 }}>
+                            {msg.text}
+                          </div>
+                        )}
 
                         {/* Audio Replay for Assistant Message */}
                         {msg.sender === "assistant" && msg.text && (
@@ -612,19 +746,62 @@ export default function App() {
 
                         {/* Evidence Citations */}
                         {msg.evidence && msg.evidence.length > 0 && (
-                          <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--glass-border)" }}>
-                            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "var(--accent-3)", marginBottom: 8 }}>
-                              🔍 Supporting Evidence Citations ({msg.evidence.length})
+                          <div
+                            style={{
+                              marginTop: 14,
+                              paddingTop: 12,
+                              borderTop: "1px solid var(--glass-border)",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                color: "var(--accent-3)",
+                                marginBottom: 8,
+                              }}
+                            >
+                              🔍 Supporting Evidence Citations (
+                              {msg.evidence.length})
                             </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 8,
+                              }}
+                            >
                               {msg.evidence.map((ev, i) => (
-                                <div key={i} style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 8, padding: "8px 12px", fontSize: 12 }}>
-                                  <div style={{ display: "flex", gap: 8, marginBottom: 4, fontWeight: 600, color: "#fbbf24" }}>
+                                <div
+                                  key={i}
+                                  style={{
+                                    background: "rgba(245,158,11,0.06)",
+                                    border: "1px solid rgba(245,158,11,0.2)",
+                                    borderRadius: 8,
+                                    padding: "8px 12px",
+                                    fontSize: 12,
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      gap: 8,
+                                      marginBottom: 4,
+                                      fontWeight: 600,
+                                      color: "#fbbf24",
+                                    }}
+                                  >
                                     <span>📄 Page {ev.page}</span>
                                     <span>§ Clause {ev.clause}</span>
                                     {ev.section && <span>[{ev.section}]</span>}
                                   </div>
-                                  <div style={{ color: "var(--text-secondary)", fontStyle: "italic" }}>
+                                  <div
+                                    style={{
+                                      color: "var(--text-secondary)",
+                                      fontStyle: "italic",
+                                    }}
+                                  >
                                     "{ev.text}"
                                   </div>
                                 </div>
@@ -641,16 +818,42 @@ export default function App() {
                 {/* QUICK SUGGESTIONS */}
                 {docInfo && (
                   <div className="suggestion-pills">
-                    <button className="pill-btn" onClick={() => askQuestion("What is the notice period for termination?")}>
+                    <button
+                      className="pill-btn"
+                      onClick={() =>
+                        askQuestion(
+                          "What is the notice period for termination?",
+                        )
+                      }
+                    >
                       🛑 Termination notice?
                     </button>
-                    <button className="pill-btn" onClick={() => askQuestion("What are the payment and compensation terms?")}>
+                    <button
+                      className="pill-btn"
+                      onClick={() =>
+                        askQuestion(
+                          "What are the payment and compensation terms?",
+                        )
+                      }
+                    >
                       💰 Payment terms?
                     </button>
-                    <button className="pill-btn" onClick={() => askQuestion("What are the confidentiality obligations?")}>
+                    <button
+                      className="pill-btn"
+                      onClick={() =>
+                        askQuestion("What are the confidentiality obligations?")
+                      }
+                    >
                       🔒 Confidentiality?
                     </button>
-                    <button className="pill-btn" onClick={() => askQuestion("What is the governing law and jurisdiction?")}>
+                    <button
+                      className="pill-btn"
+                      onClick={() =>
+                        askQuestion(
+                          "What is the governing law and jurisdiction?",
+                        )
+                      }
+                    >
                       🏛️ Governing law?
                     </button>
                   </div>
@@ -660,7 +863,11 @@ export default function App() {
                 <div className="chat-input-bar">
                   <textarea
                     className="chat-textarea"
-                    placeholder={listening ? "Listening... speak your question" : "Ask any question about this document (or use voice)..."}
+                    placeholder={
+                      listening
+                        ? "Listening... speak your question"
+                        : "Ask any question about this document (or use voice)..."
+                    }
                     value={inputQuestion}
                     onChange={(e) => setInputQuestion(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -671,7 +878,11 @@ export default function App() {
                   <button
                     className={`mic-action-btn ${listening ? "recording" : ""}`}
                     onClick={toggleListening}
-                    title={listening ? "Stop voice listening" : "Click to speak voice question"}
+                    title={
+                      listening
+                        ? "Stop voice listening"
+                        : "Click to speak voice question"
+                    }
                   >
                     {listening ? "⏹" : "🎙️"}
                   </button>
@@ -695,7 +906,9 @@ export default function App() {
               <div className="card-header">
                 <div className="card-title-group">
                   <div className="card-icon">🗂️</div>
-                  <span className="card-title">Indexed Legal Clauses ({docInfo?.total_clauses || 0})</span>
+                  <span className="card-title">
+                    Indexed Legal Clauses ({docInfo?.total_clauses || 0})
+                  </span>
                 </div>
               </div>
               <div className="card-body">
@@ -717,7 +930,9 @@ export default function App() {
                         onChange={(e) => setClauseFilterSection(e.target.value)}
                       >
                         {uniqueSections.map((s, i) => (
-                          <option key={i} value={s}>{s}</option>
+                          <option key={i} value={s}>
+                            {s}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -725,17 +940,47 @@ export default function App() {
                     {/* CLAUSES LIST */}
                     <div className="clauses-grid">
                       {filteredClauses.map((c, idx) => (
-                        <div key={c.clause_id || idx} className="clause-item-card">
+                        <div
+                          key={c.clause_id || idx}
+                          className="clause-item-card"
+                        >
                           <div className="clause-item-header">
-                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                              <span style={{ background: "rgba(124,92,252,0.15)", color: "#a78bfa", padding: "2px 8px", borderRadius: 4, fontWeight: 600 }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: 8,
+                                alignItems: "center",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  background: "rgba(124,92,252,0.15)",
+                                  color: "#a78bfa",
+                                  padding: "2px 8px",
+                                  borderRadius: 4,
+                                  fontWeight: 600,
+                                }}
+                              >
                                 Page {c.page}
                               </span>
-                              <span style={{ background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "2px 8px", borderRadius: 4, fontWeight: 600 }}>
+                              <span
+                                style={{
+                                  background: "rgba(245,158,11,0.15)",
+                                  color: "#fbbf24",
+                                  padding: "2px 8px",
+                                  borderRadius: 4,
+                                  fontWeight: 600,
+                                }}
+                              >
                                 Clause {c.clause}
                               </span>
                               {c.section && (
-                                <span style={{ color: "var(--accent-cyan)", fontWeight: 500 }}>
+                                <span
+                                  style={{
+                                    color: "var(--accent-cyan)",
+                                    fontWeight: 500,
+                                  }}
+                                >
                                   {c.section}
                                 </span>
                               )}
@@ -743,10 +988,16 @@ export default function App() {
 
                             <button
                               className="btn-audio-action"
-                              style={{ margin: 0, padding: "2px 8px", fontSize: 11 }}
+                              style={{
+                                margin: 0,
+                                padding: "2px 8px",
+                                fontSize: 11,
+                              }}
                               onClick={() => {
                                 setActiveTab("chat");
-                                askQuestion(`Explain the implications of this clause: "${c.text}"`);
+                                askQuestion(
+                                  `Explain the implications of this clause: "${c.text}"`,
+                                );
                               }}
                             >
                               🔍 Ask About This
@@ -759,9 +1010,18 @@ export default function App() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ textAlign: "center", padding: "48px 16px", color: "var(--text-muted)" }}>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "48px 16px",
+                      color: "var(--text-muted)",
+                    }}
+                  >
                     <div style={{ fontSize: 40, marginBottom: 12 }}>📂</div>
-                    <p>No document processed yet. Upload a document to explore all segmented clauses.</p>
+                    <p>
+                      No document processed yet. Upload a document to explore
+                      all segmented clauses.
+                    </p>
                   </div>
                 )}
               </div>
