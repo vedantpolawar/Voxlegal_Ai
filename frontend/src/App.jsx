@@ -128,7 +128,7 @@ export default function App() {
       try {
         recognitionRef.current.start();
         setListening(true);
-        showToast("🎙️ Listening... Speak your question now", "info");
+        showToast("Listening. Speak your question now.", "info");
       } catch (err) {
         setListening(false);
       }
@@ -186,7 +186,7 @@ export default function App() {
       setDocInfo(data);
       setActiveTab("summary");
       showToast(
-        `✅ Successfully indexed ${data.total_clauses} clauses!`,
+        `Indexed ${data.total_clauses} clauses successfully.`,
         "success",
       );
 
@@ -206,7 +206,7 @@ export default function App() {
         }
       }
     } catch (e) {
-      showToast(`❌ ${e.message}`, "error");
+      showToast(e.message, "error");
     } finally {
       setProcessing(false);
       setProcessingStep("");
@@ -290,7 +290,7 @@ export default function App() {
         speakText(data.answer);
       }
     } catch (e) {
-      showToast(`❌ ${e.message}`, "error");
+      showToast(e.message, "error");
       setChatHistory((prev) => [
         ...prev,
         {
@@ -336,35 +336,31 @@ export default function App() {
       {/* NAVBAR */}
       <nav className="navbar">
         <div className="navbar-brand">
-          <div className="brand-icon">⚖️</div>
+          <div className="brand-icon" aria-hidden="true">
+            VL
+          </div>
           <div>
             <span className="brand-name">VoxLegal AI</span>
-            <div
-              style={{
-                fontSize: 11,
-                color: "var(--text-muted)",
-                letterSpacing: "0.04em",
-              }}
-            >
-              Evidence-Grounded Legal Document Intelligence &amp; Voice QA
-            </div>
+            <div className="brand-description">Legal document intelligence</div>
           </div>
         </div>
 
         <div className="navbar-actions">
-          <div
+          <button
+            type="button"
             className={`toggle-switch ${autoSpeak ? "active" : ""}`}
             onClick={() => setAutoSpeak(!autoSpeak)}
             title="Automatically read answers aloud"
+            aria-pressed={autoSpeak}
           >
-            <span>
-              {autoSpeak ? "🔊 Voice Auto-Play ON" : "🔇 Voice Auto-Play OFF"}
-            </span>
-          </div>
+            <span className="toggle-indicator" aria-hidden="true" />
+            <span>Auto-read answers</span>
+            <span className="toggle-state">{autoSpeak ? "On" : "Off"}</span>
+          </button>
 
           {speaking && (
-            <button className="btn btn-audio-action" onClick={stopSpeaking}>
-              ⏹ Stop Voice
+            <button className="btn btn-secondary" onClick={stopSpeaking}>
+              Stop audio
             </button>
           )}
         </div>
@@ -373,18 +369,14 @@ export default function App() {
       {/* HERO BANNER */}
       <div className="hero-compact">
         <div className="hero-text">
-          <h1>
-            Legal Document Analysis{" "}
-            <span className="grad">with Voice &amp; RAG</span>
-          </h1>
+          <h1>Legal document review</h1>
           <p>
-            Upload any contract, NDA, or scanned legal PDF. Inspect full clause
-            breakdowns, executive condition summaries, and ask questions with
-            voice.
+            Review key terms, explore clauses, and ask questions grounded in
+            your document.
           </p>
         </div>
         <div className="disclaimer-pill">
-          ⚠️ Informational AI Analysis · Not Formal Legal Advice
+          AI-assisted analysis · Not legal advice
         </div>
       </div>
 
@@ -396,8 +388,10 @@ export default function App() {
           <div className="card">
             <div className="card-header">
               <div className="card-title-group">
-                <div className="card-icon">📂</div>
-                <span className="card-title">Document Ingestion</span>
+                <div className="card-icon" aria-hidden="true">
+                  01
+                </div>
+                <span className="card-title">Document</span>
               </div>
             </div>
             <div
@@ -423,15 +417,19 @@ export default function App() {
                   accept=".pdf,.png,.jpg,.jpeg"
                   onChange={(e) => handleFileChange(e.target.files[0])}
                 />
-                <span className="upload-icon">📑</span>
+                <span className="upload-icon" aria-hidden="true">
+                  PDF
+                </span>
                 <p className="upload-label">
-                  {docFile ? "Change file" : "Drop legal document or click"}
+                  {docFile
+                    ? "Choose a different file"
+                    : "Choose a file or drop it here"}
                 </p>
                 <p className="upload-hint">
-                  PDF (digital &amp; scanned) · PNG · JPG
+                  PDF, PNG, or JPG · One document at a time
                 </p>
                 {docFile && (
-                  <div className="upload-filename">📄 {docFile.name}</div>
+                  <div className="upload-filename">{docFile.name}</div>
                 )}
               </div>
 
@@ -447,9 +445,7 @@ export default function App() {
                   </>
                 ) : (
                   <span>
-                    {docInfo
-                      ? "♻️ Re-Index Document"
-                      : "🚀 Process & Index Document"}
+                    {docInfo ? "Reprocess document" : "Analyze document"}
                   </span>
                 )}
               </button>
@@ -461,8 +457,10 @@ export default function App() {
             <div className="card">
               <div className="card-header">
                 <div className="card-title-group">
-                  <div className="card-icon">📊</div>
-                  <span className="card-title">Vector Database Index</span>
+                  <div className="card-icon" aria-hidden="true">
+                    02
+                  </div>
+                  <span className="card-title">Document index</span>
                 </div>
               </div>
               <div className="card-body">
@@ -481,7 +479,7 @@ export default function App() {
                   </div>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                  📄 <strong>{docInfo.filename}</strong>
+                  <strong>{docInfo.filename}</strong>
                   <br />
                   🏷️ Type:{" "}
                   <span style={{ color: "var(--accent-2)" }}>
@@ -501,13 +499,13 @@ export default function App() {
               className={`tab-btn ${activeTab === "summary" ? "active" : ""}`}
               onClick={() => setActiveTab("summary")}
             >
-              <span>📋 Executive Summary &amp; Key Conditions</span>
+              <span>Summary</span>
             </button>
             <button
               className={`tab-btn ${activeTab === "chat" ? "active" : ""}`}
               onClick={() => setActiveTab("chat")}
             >
-              <span>🎙️ Voice &amp; Chat Assistant</span>
+              <span>Ask a question</span>
               {chatHistory.length > 0 && (
                 <span className="tab-badge">{chatHistory.length}</span>
               )}
@@ -516,7 +514,7 @@ export default function App() {
               className={`tab-btn ${activeTab === "clauses" ? "active" : ""}`}
               onClick={() => setActiveTab("clauses")}
             >
-              <span>🗂️ All Clauses ({docInfo?.total_clauses || 0})</span>
+              <span>Clauses ({docInfo?.total_clauses || 0})</span>
             </button>
           </div>
 
@@ -525,10 +523,10 @@ export default function App() {
             <div className="card">
               <div className="card-header">
                 <div className="card-title-group">
-                  <div className="card-icon">📑</div>
-                  <span className="card-title">
-                    Document Intelligence Overview
-                  </span>
+                  <div className="card-icon" aria-hidden="true">
+                    03
+                  </div>
+                  <span className="card-title">Document overview</span>
                 </div>
                 {docInfo?.summary?.document_type && (
                   <span className="grounded-badge yes">
@@ -543,7 +541,7 @@ export default function App() {
                     <div className="doc-type-banner">
                       <div>
                         <div className="doc-type-title">
-                          📌 What is this document about?
+                          What this document covers
                         </div>
                         <div
                           style={{
@@ -561,7 +559,7 @@ export default function App() {
                     {/* PARTIES */}
                     {docInfo.summary.parties_involved?.length > 0 && (
                       <div className="summary-card-block">
-                        <div className="block-title">👥 Parties Involved</div>
+                        <div className="block-title">Parties involved</div>
                         <ul className="bullet-list">
                           {docInfo.summary.parties_involved.map((party, i) => (
                             <li key={i} className="bullet-item">
@@ -576,7 +574,7 @@ export default function App() {
                     {docInfo.summary.key_conditions?.length > 0 && (
                       <div className="summary-card-block">
                         <div className="block-title">
-                          ⚖️ Key Conditions &amp; Provisions
+                          Key conditions and provisions
                         </div>
                         <ul className="bullet-list">
                           {docInfo.summary.key_conditions.map((cond, i) => (
@@ -601,7 +599,7 @@ export default function App() {
                           }}
                         >
                           <span>
-                            🛑 Termination, Notice Periods &amp; Penalties
+                            Termination, notice periods, and penalties
                           </span>
                         </div>
                         <div>{docInfo.summary.termination_and_penalties}</div>
@@ -612,7 +610,7 @@ export default function App() {
                     {docInfo.summary.governing_law_and_disputes && (
                       <div className="highlight-box amber">
                         <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                          🏛️ Governing Law &amp; Dispute Resolution
+                          Governing law and dispute resolution
                         </div>
                         <div>{docInfo.summary.governing_law_and_disputes}</div>
                       </div>
@@ -621,9 +619,7 @@ export default function App() {
                     {/* IMPORTANT TAKEAWAYS */}
                     {docInfo.summary.important_takeaways?.length > 0 && (
                       <div className="summary-card-block">
-                        <div className="block-title">
-                          💡 Important Things to Note
-                        </div>
+                        <div className="block-title">Important takeaways</div>
                         <ul className="bullet-list">
                           {docInfo.summary.important_takeaways.map(
                             (point, i) => (
@@ -644,7 +640,9 @@ export default function App() {
                       color: "var(--text-muted)",
                     }}
                   >
-                    <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
+                    <div className="empty-state-mark" aria-hidden="true">
+                      DOC
+                    </div>
                     <p>
                       Upload and process a document on the left to view the
                       automated Executive Summary &amp; Key Conditions.
@@ -660,10 +658,10 @@ export default function App() {
             <div className="card">
               <div className="card-header">
                 <div className="card-title-group">
-                  <div className="card-icon">🎙️</div>
-                  <span className="card-title">
-                    Evidence-Grounded Voice &amp; Text Assistant
-                  </span>
+                  <div className="card-icon" aria-hidden="true">
+                    Q&amp;A
+                  </div>
+                  <span className="card-title">Document questions</span>
                 </div>
                 {chatHistory.length > 0 && (
                   <button
@@ -671,7 +669,7 @@ export default function App() {
                     onClick={() => setChatHistory([])}
                     style={{ margin: 0 }}
                   >
-                    🗑️ Clear Chat
+                    Clear conversation
                   </button>
                 )}
               </div>
@@ -688,14 +686,16 @@ export default function App() {
                         maxWidth: 440,
                       }}
                     >
-                      <div style={{ fontSize: 44, marginBottom: 12 }}>💬</div>
+                      <div className="empty-state-mark" aria-hidden="true">
+                        Q&amp;A
+                      </div>
                       <h3
                         style={{
                           color: "var(--text-primary)",
                           marginBottom: 6,
                         }}
                       >
-                        Ask Anything About Your Document
+                        Ask about this document
                       </h3>
                       <p style={{ fontSize: 13, lineHeight: 1.6 }}>
                         Use your microphone or type below. Answers are strictly
@@ -707,17 +707,15 @@ export default function App() {
                       <div key={idx} className={`chat-bubble ${msg.sender}`}>
                         <div className="bubble-meta">
                           <span>
-                            {msg.sender === "user"
-                              ? "👤 You"
-                              : "⚖️ VoxLegal AI"}
+                            {msg.sender === "user" ? "You" : "VoxLegal AI"}
                           </span>
                           {msg.sender === "assistant" && (
                             <span
                               className={`grounded-badge ${msg.is_grounded ? "yes" : "no"}`}
                             >
                               {msg.is_grounded
-                                ? "✅ Grounded in Document"
-                                : "⚠️ Insufficient Context"}
+                                ? "Grounded in document"
+                                : "Limited evidence"}
                             </span>
                           )}
                         </div>
@@ -740,7 +738,7 @@ export default function App() {
                             className="btn-audio-action"
                             onClick={() => speakText(msg.text)}
                           >
-                            🔊 Read Aloud
+                            Read aloud
                           </button>
                         )}
 
@@ -762,8 +760,7 @@ export default function App() {
                                 marginBottom: 8,
                               }}
                             >
-                              🔍 Supporting Evidence Citations (
-                              {msg.evidence.length})
+                              Supporting evidence ({msg.evidence.length})
                             </div>
                             <div
                               style={{
@@ -789,12 +786,12 @@ export default function App() {
                                       gap: 8,
                                       marginBottom: 4,
                                       fontWeight: 600,
-                                      color: "#fbbf24",
+                                      color: "var(--accent-1)",
                                     }}
                                   >
-                                    <span>📄 Page {ev.page}</span>
-                                    <span>§ Clause {ev.clause}</span>
-                                    {ev.section && <span>[{ev.section}]</span>}
+                                    <span>Page {ev.page}</span>
+                                    <span>Clause {ev.clause}</span>
+                                    {ev.section && <span>{ev.section}</span>}
                                   </div>
                                   <div
                                     style={{
@@ -826,7 +823,7 @@ export default function App() {
                         )
                       }
                     >
-                      🛑 Termination notice?
+                      Termination notice
                     </button>
                     <button
                       className="pill-btn"
@@ -836,7 +833,7 @@ export default function App() {
                         )
                       }
                     >
-                      💰 Payment terms?
+                      Payment terms
                     </button>
                     <button
                       className="pill-btn"
@@ -844,7 +841,7 @@ export default function App() {
                         askQuestion("What are the confidentiality obligations?")
                       }
                     >
-                      🔒 Confidentiality?
+                      Confidentiality
                     </button>
                     <button
                       className="pill-btn"
@@ -854,7 +851,7 @@ export default function App() {
                         )
                       }
                     >
-                      🏛️ Governing law?
+                      Governing law
                     </button>
                   </div>
                 )}
@@ -884,7 +881,7 @@ export default function App() {
                         : "Click to speak voice question"
                     }
                   >
-                    {listening ? "⏹" : "🎙️"}
+                    {listening ? "Stop" : "Voice"}
                   </button>
 
                   {/* Send Button */}
@@ -905,9 +902,11 @@ export default function App() {
             <div className="card">
               <div className="card-header">
                 <div className="card-title-group">
-                  <div className="card-icon">🗂️</div>
+                  <div className="card-icon" aria-hidden="true">
+                    04
+                  </div>
                   <span className="card-title">
-                    Indexed Legal Clauses ({docInfo?.total_clauses || 0})
+                    Indexed clauses ({docInfo?.total_clauses || 0})
                   </span>
                 </div>
               </div>
@@ -952,35 +951,14 @@ export default function App() {
                                 alignItems: "center",
                               }}
                             >
-                              <span
-                                style={{
-                                  background: "rgba(124,92,252,0.15)",
-                                  color: "#a78bfa",
-                                  padding: "2px 8px",
-                                  borderRadius: 4,
-                                  fontWeight: 600,
-                                }}
-                              >
+                              <span className="metadata-label">
                                 Page {c.page}
                               </span>
-                              <span
-                                style={{
-                                  background: "rgba(245,158,11,0.15)",
-                                  color: "#fbbf24",
-                                  padding: "2px 8px",
-                                  borderRadius: 4,
-                                  fontWeight: 600,
-                                }}
-                              >
+                              <span className="metadata-label">
                                 Clause {c.clause}
                               </span>
                               {c.section && (
-                                <span
-                                  style={{
-                                    color: "var(--accent-cyan)",
-                                    fontWeight: 500,
-                                  }}
-                                >
+                                <span className="metadata-section">
                                   {c.section}
                                 </span>
                               )}
@@ -1000,7 +978,7 @@ export default function App() {
                                 );
                               }}
                             >
-                              🔍 Ask About This
+                              Ask about clause
                             </button>
                           </div>
 
@@ -1017,7 +995,9 @@ export default function App() {
                       color: "var(--text-muted)",
                     }}
                   >
-                    <div style={{ fontSize: 40, marginBottom: 12 }}>📂</div>
+                    <div className="empty-state-mark" aria-hidden="true">
+                      DOC
+                    </div>
                     <p>
                       No document processed yet. Upload a document to explore
                       all segmented clauses.
